@@ -1,0 +1,1795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Warm Minimalist Chat Dashboard</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Lora (Editorial Serif) & Plus Jakarta Sans (Humanist Sans) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            alabaster: '#EFECE6',
+            cream: '#FAF7F2',
+            parchment: '#F5F1EA',
+            pillbg: '#EFEAE1',
+            espresso: '#2A211B',
+            taupe: '#8A7E74',
+            umber: '#8C6D4F',
+            umberDark: '#75583D',
+            borderWarm: '#DFD7CC',
+            borderFrame: '#D6CEC2',
+            sageGreen: '#4C9E4A',
+          },
+          fontFamily: {
+            serif: ['"Lora"', 'Georgia', 'serif'],
+            sans: ['"Plus Jakarta Sans"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root {
+      --bg-outer: #EFECE6;
+      --bg-frame: #FAF7F2;
+      --bg-card: #F5F1EA;
+      --border-line: #DFD7CC;
+      --border-outer: #D6CEC2;
+      --text-main: #2A211B;
+      --text-muted: #8A7E74;
+      --accent-umber: #8C6D4F;
+      --accent-umber-hover: #75583D;
+      --online-green: #4C9E4A;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      background: radial-gradient(circle at 50% 25%, #F6F3EE 0%, #EFECE6 65%, #E7E2D8 100%);
+      color: var(--text-main);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      min-height: 100vh;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Main Outer Dashboard Container matching the reference frame */
+    .dashboard-frame {
+      background-color: var(--bg-frame);
+      border: 1.5px solid var(--border-outer);
+      border-radius: 28px;
+      box-shadow: 
+        0 24px 60px rgba(55, 40, 25, 0.07),
+        0 4px 16px rgba(55, 40, 25, 0.03),
+        inset 0 1px 0 rgba(255, 255, 255, 0.7);
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Custom subtle scrollbars */
+    .warm-scroll::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .warm-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .warm-scroll::-webkit-scrollbar-thumb {
+      background: #DED6CA;
+      border-radius: 999px;
+    }
+    .warm-scroll::-webkit-scrollbar-thumb:hover {
+      background: #C7BCAE;
+    }
+
+    /* Staggered Message Alignment matching the reference visual layout */
+    .msg-row-left {
+      margin-left: 0;
+    }
+    .msg-row-indented {
+      margin-left: 0;
+    }
+    @media (min-width: 768px) {
+      .msg-row-indented {
+        margin-left: 142px;
+      }
+    }
+
+    /* Message Card Styling */
+    .message-card {
+      background-color: #F5F1EA;
+      border: 1px solid #DFD7CC;
+      border-radius: 15px;
+      box-shadow: 0 2px 5px rgba(42, 33, 27, 0.018);
+      transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+    .message-card:hover {
+      border-color: #CFC4B4;
+      box-shadow: 0 4px 12px rgba(42, 33, 27, 0.04);
+    }
+
+    /* Section Card Styling */
+    .section-card {
+      background-color: #F5F1EA;
+      border: 1px solid #DFD7CC;
+      border-radius: 15px;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .section-card:hover {
+      background-color: #F1ECE2;
+      border-color: #C9BCAE;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(60, 45, 30, 0.045);
+    }
+    .section-card:active {
+      transform: translateY(0);
+    }
+
+    /* DM Pill Button */
+    .dm-pill {
+      background-color: #EFEAE1;
+      border: 1px solid #E2DAD0;
+      border-radius: 9999px;
+      transition: all 0.18s ease;
+    }
+    .dm-pill:hover, .dm-pill.active-dm {
+      background-color: #8C6D4F;
+      border-color: #8C6D4F;
+      color: #FAF7F2;
+    }
+    .dm-pill:hover svg, .dm-pill.active-dm svg {
+      stroke: #FAF7F2;
+    }
+
+    /* Member Avatar Ring */
+    .avatar-circle {
+      border: 2px solid #EFEAE1;
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .member-item:hover .avatar-circle {
+      transform: translateY(-2px);
+      border-color: #8C6D4F;
+      box-shadow: 0 6px 14px rgba(140, 109, 79, 0.16);
+    }
+    .member-item.selected-member .avatar-circle {
+      border-color: #8C6D4F;
+      box-shadow: 0 0 0 3px rgba(140, 109, 79, 0.22);
+    }
+
+    /* Toggle Switch */
+    .anon-switch {
+      width: 44px;
+      height: 24px;
+      background-color: #DBD3C8;
+      border-radius: 9999px;
+      position: relative;
+      cursor: pointer;
+      transition: background-color 0.25s ease;
+      border: 1px solid #C9C0B3;
+    }
+    .anon-switch.active {
+      background-color: #8C6D4F;
+      border-color: #7A5E42;
+    }
+    .anon-switch-knob {
+      width: 20px;
+      height: 20px;
+      background-color: #FFFFFF;
+      border-radius: 50%;
+      position: absolute;
+      top: 1px;
+      left: 1px;
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
+    .anon-switch.active .anon-switch-knob {
+      transform: translateX(20px);
+    }
+
+    /* Subtle message entrance animation */
+    @keyframes messageSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .animate-msg {
+      animation: messageSlideIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* Typing dots animation */
+    @keyframes pulseDot {
+      0%, 80%, 100% { transform: scale(0.7); opacity: 0.45; }
+      40% { transform: scale(1); opacity: 1; }
+    }
+    .typing-dot:nth-child(1) { animation: pulseDot 1.3s infinite 0s; }
+    .typing-dot:nth-child(2) { animation: pulseDot 1.3s infinite 0.2s; }
+    .typing-dot:nth-child(3) { animation: pulseDot 1.3s infinite 0.4s; }
+  </style>
+</head>
+<body class="p-3 sm:p-6 md:p-8 lg:p-10 flex items-center justify-center min-h-screen select-none">
+
+  <!-- MAIN APPLICATION CONTAINER -->
+  <div class="dashboard-frame w-full max-w-[1250px] flex flex-col">
+
+    <!-- ===================================================================== -->
+    <!-- 1. TOP HEADER BAR: ONLINE MEMBERS                                     -->
+    <!-- ===================================================================== -->
+    <header class="w-full px-6 sm:px-9 pt-6 pb-5 border-b-[1.5px] border-[#DFD7CC] bg-[#FAF7F2]">
+      <div class="flex items-center">
+        
+        <!-- Left Serif Title -->
+        <div class="pr-6 sm:pr-8 flex-shrink-0">
+          <h1 class="font-serif text-[23px] sm:text-[26px] leading-[1.18] text-[#2A211B] font-normal tracking-[-0.01em]">
+            Online<br />members
+          </h1>
+        </div>
+
+        <!-- Subtle Vertical Divider -->
+        <div class="h-[84px] w-[1px] bg-[#E5DEC9] flex-shrink-0 mr-4 sm:mr-7"></div>
+
+        <!-- Horizontal Scrollable Member List (8 Members) -->
+        <div id="membersList" class="flex items-center justify-between gap-4 sm:gap-5 overflow-x-auto warm-scroll w-full py-1 px-1">
+          <!-- Populated dynamically via JS for full interactivity -->
+        </div>
+
+      </div>
+    </header>
+
+    <!-- ===================================================================== -->
+    <!-- 2. MAIN WORKSPACE SPLIT (LEFT CHAT ~69% / RIGHT SIDEBAR ~31%)         -->
+    <!-- ===================================================================== -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 min-h-[670px] relative">
+
+      <!-- =================================================================== -->
+      <!-- LEFT COLUMN: CHAT STREAM & COMPOSER (8 cols on lg)                  -->
+      <!-- =================================================================== -->
+      <main class="lg:col-span-8 flex flex-col justify-between px-5 sm:px-9 pt-6 pb-7 border-b-[1.5px] lg:border-b-0 lg:border-r-[1.5px] border-[#DFD7CC] bg-[#FAF7F2] relative">
+
+        <!-- TOP UTILITY BAR -->
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-5 z-20">
+          
+          <!-- Send Anonymously Pill Box (Exact match to reference UI) -->
+          <div class="relative inline-flex items-center gap-3.5 bg-[#F6F2EB] border border-[#D8D0C5] rounded-[13px] px-4 py-2.5 shadow-[0_1px_2px_rgba(42,33,27,0.02)]">
+            <button 
+              id="anonToggleBtn" 
+              type="button" 
+              role="switch" 
+              aria-checked="false" 
+              aria-label="Send anonymously"
+              class="anon-switch focus:outline-none"
+            >
+              <span class="anon-switch-knob"></span>
+            </button>
+            
+            <span id="anonLabelText" class="text-[15px] font-medium text-[#2A211B] select-text cursor-pointer">
+              Send anonymously
+            </span>
+
+            <!-- Info Icon with Popover Tooltip -->
+            <div class="relative flex items-center">
+              <button 
+                id="anonInfoBtn" 
+                type="button"
+                aria-label="Anonymous mode information"
+                class="w-[19px] h-[19px] rounded-full border border-[#8A7E74] text-[#8A7E74] hover:text-[#2A211B] hover:border-[#2A211B] flex items-center justify-center text-[11.5px] font-serif italic transition-colors focus:outline-none"
+              >
+                i
+              </button>
+
+              <!-- Floating Tooltip -->
+              <div 
+                id="anonTooltip" 
+                class="hidden absolute left-0 sm:left-auto sm:right-[-180px] top-8 w-64 p-3 bg-[#2A211B] text-[#FAF7F2] text-xs leading-relaxed rounded-xl shadow-xl z-40 pointer-events-none"
+              >
+                When enabled, your messages in this thread are posted as <strong>Anonymous Teammate</strong> without your name or portrait.
+              </div>
+            </div>
+          </div>
+
+          <!-- Interactive Workspace Context & Quick Controls -->
+          <div class="flex items-center gap-2 flex-wrap">
+            <!-- Active Channel / DM Banner Pill -->
+            <div id="channelStatusPill" class="hidden items-center gap-2 bg-[#EFEAE1] border border-[#D8D0C5] px-3 py-1.5 rounded-full text-xs font-medium text-[#2A211B]">
+              <span id="channelStatusText">DM with Eleanor</span>
+              <button id="exitDmBtn" class="ml-1 text-[#8C6D4F] hover:text-[#2A211B] font-semibold underline">
+                Back to Team
+              </button>
+            </div>
+
+            <!-- Active Sender Persona Selector -->
+            <div class="flex items-center gap-1.5 bg-[#F5F1EA] border border-[#DFD7CC] rounded-xl px-2.5 py-1.5 text-xs text-[#8A7E74]">
+              <span>Speaking as:</span>
+              <select id="senderSelect" class="bg-transparent font-semibold text-[#2A211B] focus:outline-none cursor-pointer pr-1">
+                <option value="eleanor">Eleanor Park</option>
+                <option value="owen">Owen Reed</option>
+                <option value="mira">Mira Chen</option>
+                <option value="daniel">Daniel Cole</option>
+                <option value="clara">Clara Vance</option>
+                <option value="jonas">Jonas Lind</option>
+                <option value="rhea">Rhea Kapoor</option>
+                <option value="miles">Miles Sterling</option>
+              </select>
+            </div>
+
+            <!-- Simulate Live Reply Button -->
+            <button 
+              id="simulateReplyBtn"
+              type="button"
+              title="Simulate an incoming teammate reply"
+              class="bg-[#F5F1EA] hover:bg-[#EFEAE1] border border-[#DFD7CC] text-[#2A211B] text-xs font-medium px-3 py-1.5 rounded-xl transition flex items-center gap-1.5 active:scale-95"
+            >
+              <span class="w-2 h-2 rounded-full bg-[#4C9E4A]"></span>
+              <span>Simulate Reply</span>
+            </button>
+          </div>
+
+        </div>
+
+        <!-- STAGGERED EDITORIAL MESSAGE STREAM -->
+        <div id="chatStream" class="flex-1 overflow-y-auto warm-scroll pr-1 sm:pr-2 space-y-5 my-1 max-h-[455px] select-text">
+          <!-- Messages injected via JS -->
+        </div>
+
+        <!-- Typing Indicator Row (Hidden by default) -->
+        <div id="typingIndicator" class="hidden items-center gap-3 py-2 px-1 text-xs text-[#8A7E74]">
+          <img id="typingAvatar" src="" alt="" class="w-7 h-7 rounded-full object-cover border border-[#DFD7CC]" />
+          <span id="typingText" class="font-medium text-[#2A211B]">Clara Vance</span> is typing
+          <span class="inline-flex items-center gap-1 ml-0.5">
+            <span class="typing-dot w-1.5 h-1.5 rounded-full bg-[#8C6D4F]"></span>
+            <span class="typing-dot w-1.5 h-1.5 rounded-full bg-[#8C6D4F]"></span>
+            <span class="typing-dot w-1.5 h-1.5 rounded-full bg-[#8C6D4F]"></span>
+          </span>
+        </div>
+
+        <!-- BOTTOM MESSAGE COMPOSER AREA -->
+        <div class="mt-4 pt-1 relative z-20">
+
+          <!-- Active Reply / Attachment Preview Bar (if quoting or attaching a file) -->
+          <div id="composerContextBar" class="hidden mb-2 px-3.5 py-2 bg-[#EFEAE1] border border-[#DFD7CC] rounded-xl items-center justify-between text-xs text-[#2A211B]">
+            <div class="flex items-center gap-2 truncate">
+              <span id="composerContextBadge" class="px-2 py-0.5 rounded bg-[#8C6D4F] text-white font-medium text-[11px]">Replying</span>
+              <span id="composerContextDetail" class="truncate text-[#5A4E44]"></span>
+            </div>
+            <button id="clearComposerContextBtn" type="button" class="text-[#8A7E74] hover:text-[#2A211B] ml-2 font-bold px-1">
+              ✕
+            </button>
+          </div>
+
+          <!-- Floating Emoji Picker Popover -->
+          <div id="emojiPopover" class="hidden absolute right-14 bottom-16 bg-[#FAF7F2] border border-[#D6CEC2] rounded-2xl shadow-xl p-3 z-30 w-64">
+            <div class="text-[11px] font-medium text-[#8A7E74] uppercase tracking-wider mb-2 px-1">Quick Reactions & Emojis</div>
+            <div id="emojiGrid" class="grid grid-cols-6 gap-1.5 text-lg">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+
+          <!-- Composer Box matching reference image -->
+          <form id="chatForm" class="bg-[#F5F1EA] border-[1.5px] border-[#D8D0C5] focus-within:border-[#8C6D4F] rounded-[16px] pl-5 pr-3 py-2.5 flex items-center justify-between transition-colors shadow-[0_2px_8px_rgba(42,33,27,0.025)]">
+            <input 
+              id="messageInput" 
+              type="text" 
+              placeholder="Write a message..." 
+              autocomplete="off"
+              class="w-full bg-transparent text-[15.5px] text-[#2A211B] placeholder-[#8A7E74] focus:outline-none pr-3 select-text"
+            />
+
+            <!-- Right Controls Group with Subtle Left Hairline Divider -->
+            <div class="flex items-center gap-3.5 pl-4 border-l border-[#E0D8CC] flex-shrink-0">
+              
+              <!-- Emoji Button -->
+              <button 
+                id="emojiBtn" 
+                type="button" 
+                title="Insert emoji"
+                class="text-[#6E5F53] hover:text-[#2A211B] transition-colors p-1 rounded-lg hover:bg-[#EFEAE1] focus:outline-none"
+              >
+                <svg class="w-[23px] h-[23px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+                  <line x1="9" y1="9" x2="9.01" y2="9"></line>
+                  <line x1="15" y1="9" x2="15.01" y2="9"></line>
+                </svg>
+              </button>
+
+              <!-- Attachment Paperclip Button -->
+              <button 
+                id="attachBtn" 
+                type="button" 
+                title="Attach file to message"
+                class="text-[#6E5F53] hover:text-[#2A211B] transition-colors p-1 rounded-lg hover:bg-[#EFEAE1] focus:outline-none"
+              >
+                <svg class="w-[22px] h-[22px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+                </svg>
+              </button>
+
+              <!-- Warm Bronze Send Button -->
+              <button 
+                type="submit" 
+                title="Send message"
+                class="bg-[#8C6D4F] hover:bg-[#765A3E] active:scale-95 text-[#FAF7F2] w-[50px] h-[38px] rounded-[10px] flex items-center justify-center transition-all shadow-sm focus:outline-none"
+              >
+                <svg class="w-[20px] h-[20px] -ml-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="22" y1="2" x2="11" y2="13"></line>
+                  <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+              </button>
+
+            </div>
+          </form>
+
+        </div>
+      </main>
+
+      <!-- =================================================================== -->
+      <!-- RIGHT SIDEBAR: IMPORTANT SECTIONS & BOTANICAL ILLUSTRATION (4 cols) -->
+      <!-- =================================================================== -->
+      <aside class="lg:col-span-4 flex flex-col justify-between px-6 sm:px-8 pt-7 pb-6 bg-[#FAF7F2] relative overflow-hidden">
+        
+        <div class="z-10">
+          <!-- Editorial Serif Heading -->
+          <h2 class="font-serif text-[25px] text-[#2A211B] font-normal tracking-[-0.01em] mb-5">
+            Important sections
+          </h2>
+
+          <!-- 5 Navigation Cards Stack -->
+          <div class="space-y-3.5">
+
+            <!-- 1. Notices -->
+            <button 
+              type="button"
+              data-section="notices"
+              class="section-card w-full text-left px-5 py-4 flex items-center justify-between group focus:outline-none"
+            >
+              <div class="flex items-center gap-4">
+                <div class="text-[#3A2E25] group-hover:text-[#8C6D4F] transition-colors">
+                  <!-- Megaphone SVG -->
+                  <svg class="w-[26px] h-[26px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m3 11 18-5v12L3 14v-3z"></path>
+                    <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"></path>
+                  </svg>
+                </div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-[16.5px] font-semibold text-[#2A211B] leading-snug">Notices</span>
+                    <span id="badge-notices" class="text-[11px] font-medium px-1.5 py-0.2 bg-[#EFEAE1] text-[#8C6D4F] rounded-full border border-[#DFD7CC]">3</span>
+                  </div>
+                  <p class="text-[13.5px] text-[#6E6259] mt-0.5">Updates &amp; announcements</p>
+                </div>
+              </div>
+              <svg class="w-4 h-4 text-[#6E6259] group-hover:translate-x-0.5 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </button>
+
+            <!-- 2. Files -->
+            <button 
+              type="button"
+              data-section="files"
+              class="section-card w-full text-left px-5 py-4 flex items-center justify-between group focus:outline-none"
+            >
+              <div class="flex items-center gap-4">
+                <div class="text-[#3A2E25] group-hover:text-[#8C6D4F] transition-colors">
+                  <!-- Folder SVG -->
+                  <svg class="w-[25px] h-[25px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                  </svg>
+                </div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-[16.5px] font-semibold text-[#2A211B] leading-snug">Files</span>
+                    <span id="badge-files" class="text-[11px] font-medium px-1.5 py-0.2 bg-[#EFEAE1] text-[#8C6D4F] rounded-full border border-[#DFD7CC]">4</span>
+                  </div>
+                  <p class="text-[13.5px] text-[#6E6259] mt-0.5">Shared documents &amp; assets</p>
+                </div>
+              </div>
+              <svg class="w-4 h-4 text-[#6E6259] group-hover:translate-x-0.5 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </button>
+
+            <!-- 3. Reels -->
+            <button 
+              type="button"
+              data-section="reels"
+              class="section-card w-full text-left px-5 py-4 flex items-center justify-between group focus:outline-none"
+            >
+              <div class="flex items-center gap-4">
+                <div class="text-[#3A2E25] group-hover:text-[#8C6D4F] transition-colors">
+                  <!-- Play Box SVG -->
+                  <svg class="w-[25px] h-[25px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="5" width="18" height="14" rx="4" ry="4"></rect>
+                    <polygon points="10 9 15 12 10 15 10 9"></polygon>
+                  </svg>
+                </div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-[16.5px] font-semibold text-[#2A211B] leading-snug">Reels</span>
+                    <span id="badge-reels" class="text-[11px] font-medium px-1.5 py-0.2 bg-[#EFEAE1] text-[#8C6D4F] rounded-full border border-[#DFD7CC]">3</span>
+                  </div>
+                  <p class="text-[13.5px] text-[#6E6259] mt-0.5">Short videos &amp; highlights</p>
+                </div>
+              </div>
+              <svg class="w-4 h-4 text-[#6E6259] group-hover:translate-x-0.5 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </button>
+
+            <!-- 4. Pinned -->
+            <button 
+              type="button"
+              data-section="pinned"
+              class="section-card w-full text-left px-5 py-4 flex items-center justify-between group focus:outline-none"
+            >
+              <div class="flex items-center gap-4">
+                <div class="text-[#3A2E25] group-hover:text-[#8C6D4F] transition-colors">
+                  <!-- Pushpin SVG -->
+                  <svg class="w-[25px] h-[25px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 17v5"></path>
+                    <path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"></path>
+                  </svg>
+                </div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-[16.5px] font-semibold text-[#2A211B] leading-snug">Pinned</span>
+                    <span id="badge-pinned" class="text-[11px] font-medium px-1.5 py-0.2 bg-[#EFEAE1] text-[#8C6D4F] rounded-full border border-[#DFD7CC]">2</span>
+                  </div>
+                  <p class="text-[13.5px] text-[#6E6259] mt-0.5">Key messages &amp; resources</p>
+                </div>
+              </div>
+              <svg class="w-4 h-4 text-[#6E6259] group-hover:translate-x-0.5 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </button>
+
+            <!-- 5. Events -->
+            <button 
+              type="button"
+              data-section="events"
+              class="section-card w-full text-left px-5 py-4 flex items-center justify-between group focus:outline-none"
+            >
+              <div class="flex items-center gap-4">
+                <div class="text-[#3A2E25] group-hover:text-[#8C6D4F] transition-colors">
+                  <!-- Calendar SVG -->
+                  <svg class="w-[25px] h-[25px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="3" ry="3"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                  </svg>
+                </div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-[16.5px] font-semibold text-[#2A211B] leading-snug">Events</span>
+                    <span id="badge-events" class="text-[11px] font-medium px-1.5 py-0.2 bg-[#EFEAE1] text-[#8C6D4F] rounded-full border border-[#DFD7CC]">3</span>
+                  </div>
+                  <p class="text-[13.5px] text-[#6E6259] mt-0.5">Meetings, deadlines &amp; more</p>
+                </div>
+              </div>
+              <svg class="w-4 h-4 text-[#6E6259] group-hover:translate-x-0.5 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </button>
+
+          </div>
+        </div>
+
+        <!-- Delicate Botanical Leafy Branch Illustration in Bottom-Right Corner -->
+        <div class="relative h-36 mt-4 flex items-end justify-end pointer-events-none select-none">
+          <svg class="w-52 h-40 -mr-3 -mb-3 opacity-90" viewBox="0 0 240 190" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Main sweeping stem -->
+            <path d="M55 185 C 95 155, 145 110, 198 22" stroke="#D7C7B2" stroke-width="2" stroke-linecap="round"/>
+            <!-- Secondary left stem -->
+            <path d="M112 135 C 95 112, 85 92, 82 68" stroke="#D7C7B2" stroke-width="1.6" stroke-linecap="round"/>
+            <!-- Secondary lower right stem -->
+            <path d="M96 150 C 132 146, 162 138, 195 122" stroke="#D7C7B2" stroke-width="1.5" stroke-linecap="round"/>
+            
+            <!-- Top tip leaf -->
+            <path d="M198 22 C 192 8, 206 2, 212 14 C 216 22, 205 26, 198 22 Z" fill="#D5C4AE"/>
+            <!-- Upper left leaf on main stem -->
+            <path d="M178 52 C 160 40, 162 20, 178 26 C 188 30, 184 46, 178 52 Z" fill="#DECDB8"/>
+            <!-- Upper right leaf on main stem -->
+            <path d="M182 48 C 198 38, 218 44, 212 58 C 206 68, 190 56, 182 48 Z" fill="#D5C4AE"/>
+            <!-- Mid left leaf on main stem -->
+            <path d="M154 86 C 134 72, 136 50, 152 58 C 164 64, 160 78, 154 86 Z" fill="#E3D5C3"/>
+            <!-- Mid right leaf on main stem -->
+            <path d="M158 82 C 178 72, 202 80, 194 94 C 186 106, 168 92, 158 82 Z" fill="#D7C6B0"/>
+            
+            <!-- Secondary left branch leaves -->
+            <path d="M82 68 C 72 54, 84 42, 92 54 C 98 62, 88 68, 82 68 Z" fill="#DECDB8"/>
+            <path d="M92 98 C 72 92, 66 76, 82 78 C 92 80, 94 92, 92 98 Z" fill="#E5D8C7"/>
+            <path d="M98 108 C 106 92, 122 90, 118 104 C 114 114, 102 110, 98 108 Z" fill="#D8C7B2"/>
+
+            <!-- Lower leaves -->
+            <path d="M138 144 C 152 128, 174 130, 166 144 C 160 154, 146 148, 138 144 Z" fill="#DECDB8"/>
+            <path d="M172 132 C 188 122, 206 128, 198 140 C 192 148, 178 138, 172 132 Z" fill="#D5C4AE"/>
+            <path d="M116 152 C 130 162, 148 176, 132 182 C 118 186, 114 164, 116 152 Z" fill="#DFD0BC"/>
+            <path d="M82 162 C 62 152, 54 134, 72 136 C 86 138, 86 154, 82 162 Z" fill="#E4D6C5"/>
+          </svg>
+        </div>
+
+      </aside>
+
+      <!-- =================================================================== -->
+      <!-- SLIDE-OVER SECTION DRAWER (Notices, Files, Reels, Pinned, Events)   -->
+      <!-- =================================================================== -->
+      <div 
+        id="sectionDrawerBackdrop" 
+        class="hidden absolute inset-0 bg-[#2A211B]/20 backdrop-blur-[2px] z-30 transition-opacity"
+      ></div>
+
+      <div 
+        id="sectionDrawer" 
+        class="hidden absolute top-0 right-0 bottom-0 w-full sm:w-[440px] bg-[#FAF7F2] border-l-[1.5px] border-[#D6CEC2] shadow-2xl z-40 flex-col justify-between"
+      >
+        <!-- Drawer Header -->
+        <div class="px-6 py-5 border-b border-[#DFD7CC] flex items-center justify-between bg-[#F5F1EA]">
+          <div class="flex items-center gap-3">
+            <div id="drawerIconContainer" class="w-9 h-9 rounded-xl bg-[#EFEAE1] border border-[#DFD7CC] flex items-center justify-center text-[#8C6D4F]"></div>
+            <div>
+              <h3 id="drawerTitle" class="font-serif text-xl text-[#2A211B]">Notices</h3>
+              <p id="drawerSubtitle" class="text-xs text-[#8A7E74]">Updates &amp; announcements</p>
+            </div>
+          </div>
+          <button 
+            id="closeDrawerBtn" 
+            type="button"
+            class="w-8 h-8 rounded-full bg-[#EFEAE1] hover:bg-[#E2DAD0] text-[#2A211B] flex items-center justify-center text-sm transition"
+          >
+            ✕
+          </button>
+        </div>
+
+        <!-- Drawer Dynamic Body -->
+        <div id="drawerBody" class="flex-1 overflow-y-auto warm-scroll p-6 space-y-4 select-text">
+          <!-- Populated dynamically via JS -->
+        </div>
+
+        <!-- Drawer Footer Action -->
+        <div id="drawerFooter" class="px-6 py-4 border-t border-[#DFD7CC] bg-[#F5F1EA]">
+          <!-- Context-specific action button injected via JS -->
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ======================================================================= -->
+  <!-- ATTACHMENT / FILE PICKER MODAL                                          -->
+  <!-- ======================================================================= -->
+  <div id="attachModal" class="hidden fixed inset-0 bg-[#2A211B]/30 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+    <div class="bg-[#FAF7F2] border-[1.5px] border-[#D6CEC2] rounded-3xl max-w-md w-full p-6 shadow-2xl">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-serif text-xl text-[#2A211B]">Attach a File or Asset</h3>
+        <button id="closeAttachModalBtn" class="w-8 h-8 rounded-full bg-[#EFEAE1] text-[#2A211B] flex items-center justify-center text-sm">✕</button>
+      </div>
+      <p class="text-xs text-[#8A7E74] mb-4">Select a shared studio document or create a new file attachment for your message:</p>
+      
+      <div class="space-y-2.5 mb-5" id="quickAttachList">
+        <!-- Quick files injected via JS -->
+      </div>
+
+      <div class="border-t border-[#DFD7CC] pt-4">
+        <label class="block text-xs font-semibold text-[#2A211B] mb-2">Or attach custom file name:</label>
+        <div class="flex gap-2">
+          <input id="customFileNameInput" type="text" placeholder="e.g. Q4_Moodboard_Final.pdf" class="flex-1 bg-[#F5F1EA] border border-[#D8D0C5] rounded-xl px-3 py-2 text-sm text-[#2A211B] focus:outline-none focus:border-[#8C6D4F]" />
+          <button id="confirmCustomFileBtn" type="button" class="bg-[#8C6D4F] hover:bg-[#765A3E] text-white text-xs font-medium px-4 py-2 rounded-xl transition">
+            Attach
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toastNotice" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-[#2A211B] text-[#FAF7F2] px-4 py-2.5 rounded-full text-xs font-medium shadow-lg opacity-0 pointer-events-none transition-all duration-300 z-50 flex items-center gap-2">
+    <span class="w-2 h-2 rounded-full bg-[#4C9E4A]"></span>
+    <span id="toastText">Action completed</span>
+  </div>
+
+  <!-- ======================================================================= -->
+  <!-- APPLICATION LOGIC & INTERACTIVITY                                       -->
+  <!-- ======================================================================= -->
+  <script>
+    // -------------------------------------------------------------------------
+    // 1. CURATED DATA: 8 ONLINE TEAM MEMBERS
+    // -------------------------------------------------------------------------
+    const members = [
+      {
+        id: 'eleanor',
+        firstName: 'Eleanor',
+        fullName: 'Eleanor Park',
+        role: 'Creative Director',
+        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=240&q=80',
+        fallback: 'https://placehold.co/150x150/DFD3C3/2A211B?text=EP',
+        sampleReply: "Thanks everyone! I've just updated slide 4 of the Campaign Brief with your notes. 🌿"
+      },
+      {
+        id: 'owen',
+        firstName: 'Owen',
+        fullName: 'Owen Reed',
+        role: 'Lead Copywriter',
+        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=240&q=80',
+        fallback: 'https://placehold.co/150x150/DFD3C3/2A211B?text=OR',
+        sampleReply: "Just polished the headline options for the autumn editorial spread—let me know which resonates best."
+      },
+      {
+        id: 'mira',
+        firstName: 'Mira',
+        fullName: 'Mira Chen',
+        role: 'Brand Strategist',
+        avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=240&q=80',
+        fallback: 'https://placehold.co/150x150/DFD3C3/2A211B?text=MC',
+        sampleReply: "I love where this is heading! Calling into the 3 PM review from the studio lounge. ☕"
+      },
+      {
+        id: 'daniel',
+        firstName: 'Daniel',
+        fullName: 'Daniel Cole',
+        role: 'Art Director',
+        avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=240&q=80',
+        fallback: 'https://placehold.co/150x150/DFD3C3/2A211B?text=DC',
+        sampleReply: "Uploaded the warm film grain textures to the Files section so we can preview them at 3 PM."
+      },
+      {
+        id: 'clara',
+        firstName: 'Clara',
+        fullName: 'Clara Vance',
+        role: 'Visual Designer',
+        avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=240&q=80',
+        fallback: 'https://placehold.co/150x150/DFD3C3/2A211B?text=CV',
+        sampleReply: "The botanical illustrations pair so well with the warm serif typography! ✨"
+      },
+      {
+        id: 'jonas',
+        firstName: 'Jonas',
+        fullName: 'Jonas Lind',
+        role: 'Motion Designer',
+        avatar: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=240&q=80',
+        fallback: 'https://placehold.co/150x150/DFD3C3/2A211B?text=JL',
+        sampleReply: "Just dropped the 15-second teaser cut into Reels! Would love feedback on the pacing."
+      },
+      {
+        id: 'rhea',
+        firstName: 'Rhea',
+        fullName: 'Rhea Kapoor',
+        role: 'Product Manager',
+        avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=240&q=80',
+        fallback: 'https://placehold.co/150x150/DFD3C3/2A211B?text=RK',
+        sampleReply: "Timeline looks super healthy. All deliverables are locked in for Friday's client showcase."
+      },
+      {
+        id: 'miles',
+        firstName: 'Miles',
+        fullName: 'Miles Sterling',
+        role: 'Editorial Photographer',
+        avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=240&q=80',
+        fallback: 'https://placehold.co/150x150/DFD3C3/2A211B?text=MS',
+        sampleReply: "Natural light portraits from yesterday's shoot are graded and ready in the shared folder!"
+      }
+    ];
+
+    const anonymousMember = {
+      id: 'anon',
+      firstName: 'Anonymous',
+      fullName: 'Anonymous Teammate',
+      role: 'Hidden Identity',
+      avatar: 'https://placehold.co/150x150/8C6D4F/FAF7F2?text=?'
+    };
+
+    // -------------------------------------------------------------------------
+    // 2. PRE-LOADED MESSAGES (Exact copy & staggered alignment from design)
+    // -------------------------------------------------------------------------
+    let teamMessages = [
+      {
+        id: 'msg-1',
+        senderId: 'eleanor',
+        timestamp: 'Today, 10:24 AM',
+        text: 'Just finished the draft for the campaign brief. 🌿\nCould you all take a look and share your thoughts?',
+        indented: false,
+        pinned: true,
+        reactions: { '🌿': 3, '👏': 2 }
+      },
+      {
+        id: 'msg-2',
+        senderId: 'owen',
+        timestamp: 'Today, 10:37 AM',
+        text: 'Looks great, Eleanor! I especially like the direction\non the storytelling section. Added a few comments in the file.',
+        indented: true,
+        pinned: false,
+        reactions: { '✨': 2 }
+      },
+      {
+        id: 'msg-3',
+        senderId: 'mira',
+        timestamp: 'Today, 11:02 AM',
+        text: '+1! The tone feels spot on. Should we aim to review\nthe final version together this afternoon?',
+        indented: false,
+        pinned: false,
+        reactions: { '👍': 4 }
+      },
+      {
+        id: 'msg-4',
+        senderId: 'daniel',
+        timestamp: 'Today, 11:16 AM',
+        text: 'Works for me. How about 3 PM? I can also walk through\nthe key changes then.',
+        indented: true,
+        pinned: true,
+        reactions: { '✅': 3 }
+      }
+    ];
+
+    // Direct message threads per member
+    const dmThreads = {
+      eleanor: [
+        {
+          id: 'dm-e-1',
+          senderId: 'eleanor',
+          timestamp: 'Today, 10:15 AM',
+          text: 'Hey! Let me know if you want early access to the botanical illustration assets before the 3 PM review. 🌿',
+          indented: false,
+          pinned: false,
+          reactions: {}
+        }
+      ],
+      owen: [
+        {
+          id: 'dm-o-1',
+          senderId: 'owen',
+          timestamp: 'Today, 10:40 AM',
+          text: 'Working on the narrative arc for section 2—happy to pair up on the tagline variations anytime today.',
+          indented: false,
+          pinned: false,
+          reactions: {}
+        }
+      ]
+    };
+
+    // -------------------------------------------------------------------------
+    // 3. RIGHT SIDEBAR SECTIONS DATA (Notices, Files, Reels, Pinned, Events)
+    // -------------------------------------------------------------------------
+    let sectionData = {
+      notices: [
+        {
+          id: 'n1',
+          title: 'Q4 Autumn Editorial Campaign Kickoff',
+          date: 'Posted Today • by Eleanor Park',
+          tag: 'Announcement',
+          body: 'Our warm minimalist rebrand & campaign brief review happens today at 3:00 PM. Please leave your final inline comments before 2:30 PM.'
+        },
+        {
+          id: 'n2',
+          title: 'New Botanical Asset Library Live',
+          date: 'Yesterday • by Clara Vance',
+          tag: 'Design System',
+          body: 'Added 24 hand-drawn warm vector botanicals and parchment grain presets to the shared Figma library.'
+        },
+        {
+          id: 'n3',
+          title: 'Friday Studio Tea & Showcase',
+          date: 'Nov 8 • by Rhea Kapoor',
+          tag: 'Culture',
+          body: 'Join us this Friday at 4:00 PM for artisanal oolong tea and a casual walkthrough of Jonas & Miles’ new campaign reels.'
+        }
+      ],
+      files: [
+        {
+          id: 'f1',
+          name: 'Campaign_Brief_v2.pdf',
+          meta: '2.4 MB • Shared by Eleanor Park',
+          type: 'PDF',
+          preview: 'Editorial Direction: Warm Minimalist & Organic Storytelling. Emphasizing tactile paper textures, human warmth, and unhurried clarity.'
+        },
+        {
+          id: 'f2',
+          name: 'Storytelling_Notes_Owen.docx',
+          meta: '840 KB • Shared by Owen Reed',
+          type: 'DOCX',
+          preview: 'Key voice pillars: Calm authority, inviting conversation, and poetic simplicity across all touchpoints.'
+        },
+        {
+          id: 'f3',
+          name: 'Warm_Editorial_Palette_2026.fig',
+          meta: '14.2 MB • Shared by Clara Vance',
+          type: 'FIGMA',
+          preview: 'Tokens: Alabaster (#EFECE6), Cream (#FAF7F2), Parchment (#F5F1EA), Espresso (#2A211B), and Earthy Umber (#8C6D4F).'
+        },
+        {
+          id: 'f4',
+          name: 'Studio_Portraits_Graded.zip',
+          meta: '48.0 MB • Shared by Miles Sterling',
+          type: 'ZIP',
+          preview: 'High-resolution natural light portraits for the 8 core team profiles and press kit.'
+        }
+      ],
+      reels: [
+        {
+          id: 'r1',
+          title: 'Autumn Campaign Mood & Typography Reel',
+          author: 'Jonas Lind',
+          duration: '0:28',
+          views: '18 views',
+          description: 'Slow-motion parchment textures paired with Lora serif kinetic typography.'
+        },
+        {
+          id: 'r2',
+          title: 'Behind the Scenes: Natural Light Portrait Shoot',
+          author: 'Miles Sterling',
+          duration: '0:45',
+          views: '24 views',
+          description: 'Highlights from our morning studio session using warm 5600K diffused lighting.'
+        },
+        {
+          id: 'r3',
+          title: 'Interactive Prototype Walkthrough',
+          author: 'Clara Vance',
+          duration: '1:12',
+          views: '15 views',
+          description: 'Micro-interactions and staggered conversation flow demo.'
+        }
+      ],
+      events: [
+        {
+          id: 'ev1',
+          title: 'Campaign Brief Final Review',
+          time: 'Today, 3:00 PM – 3:45 PM',
+          location: 'Studio Room B & Video Call',
+          host: 'Eleanor Park & Daniel Cole',
+          rsvp: 'Going'
+        },
+        {
+          id: 'ev2',
+          title: 'Typography & Print Proof Check',
+          time: 'Tomorrow, 11:00 AM – 11:30 AM',
+          location: 'Design Atelier',
+          host: 'Clara Vance',
+          rsvp: 'Maybe'
+        },
+        {
+          id: 'ev3',
+          title: 'Client Deck Dry Run',
+          time: 'Friday, 2:00 PM – 3:00 PM',
+          location: 'Main Boardroom',
+          host: 'Rhea Kapoor',
+          rsvp: 'Going'
+        }
+      ]
+    };
+
+    // -------------------------------------------------------------------------
+    // 4. APPLICATION STATE
+    // -------------------------------------------------------------------------
+    let isAnonymous = false;
+    let activeChannel = 'team'; // 'team' or member.id for DM
+    let currentSenderId = 'eleanor';
+    let replyToMessage = null;
+    let pendingAttachment = null;
+    let activeSectionDrawer = null;
+    let playingReelId = null;
+
+    // -------------------------------------------------------------------------
+    // 5. DOM REFERENCES
+    // -------------------------------------------------------------------------
+    const membersListEl = document.getElementById('membersList');
+    const chatStreamEl = document.getElementById('chatStream');
+    const anonToggleBtn = document.getElementById('anonToggleBtn');
+    const anonLabelText = document.getElementById('anonLabelText');
+    const anonInfoBtn = document.getElementById('anonInfoBtn');
+    const anonTooltip = document.getElementById('anonTooltip');
+    const senderSelect = document.getElementById('senderSelect');
+    const simulateReplyBtn = document.getElementById('simulateReplyBtn');
+    const channelStatusPill = document.getElementById('channelStatusPill');
+    const channelStatusText = document.getElementById('channelStatusText');
+    const exitDmBtn = document.getElementById('exitDmBtn');
+    const chatForm = document.getElementById('chatForm');
+    const messageInput = document.getElementById('messageInput');
+    const emojiBtn = document.getElementById('emojiBtn');
+    const emojiPopover = document.getElementById('emojiPopover');
+    const emojiGrid = document.getElementById('emojiGrid');
+    const attachBtn = document.getElementById('attachBtn');
+    const attachModal = document.getElementById('attachModal');
+    const closeAttachModalBtn = document.getElementById('closeAttachModalBtn');
+    const quickAttachList = document.getElementById('quickAttachList');
+    const customFileNameInput = document.getElementById('customFileNameInput');
+    const confirmCustomFileBtn = document.getElementById('confirmCustomFileBtn');
+    const composerContextBar = document.getElementById('composerContextBar');
+    const composerContextBadge = document.getElementById('composerContextBadge');
+    const composerContextDetail = document.getElementById('composerContextDetail');
+    const clearComposerContextBtn = document.getElementById('clearComposerContextBtn');
+    const sectionDrawer = document.getElementById('sectionDrawer');
+    const sectionDrawerBackdrop = document.getElementById('sectionDrawerBackdrop');
+    const drawerTitle = document.getElementById('drawerTitle');
+    const drawerSubtitle = document.getElementById('drawerSubtitle');
+    const drawerIconContainer = document.getElementById('drawerIconContainer');
+    const drawerBody = document.getElementById('drawerBody');
+    const drawerFooter = document.getElementById('drawerFooter');
+    const closeDrawerBtn = document.getElementById('closeDrawerBtn');
+    const typingIndicator = document.getElementById('typingIndicator');
+    const typingAvatar = document.getElementById('typingAvatar');
+    const typingText = document.getElementById('typingText');
+
+    // -------------------------------------------------------------------------
+    // 6. RENDER FUNCTIONS
+    // -------------------------------------------------------------------------
+    function getMemberById(id) {
+      if (id === 'anon') return anonymousMember;
+      return members.find(m => m.id === id) || members[0];
+    }
+
+    function showToast(text) {
+      const toast = document.getElementById('toastNotice');
+      document.getElementById('toastText').textContent = text;
+      toast.classList.remove('opacity-0', 'pointer-events-none');
+      toast.classList.add('opacity-100');
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => {
+        toast.classList.remove('opacity-100');
+        toast.classList.add('opacity-0', 'pointer-events-none');
+      }, 2600);
+    }
+
+    // Render Top Bar Online Members (8 members matching reference image)
+    function renderMembersHeader() {
+      membersListEl.innerHTML = members.map(member => {
+        const isCurrentDm = activeChannel === member.id;
+        return `
+          <div class="member-item flex flex-col items-center flex-shrink-0 group cursor-pointer ${isCurrentDm ? 'selected-member' : ''}" data-member-id="${member.id}">
+            <!-- Circular Portrait + Online Green Badge -->
+            <div class="relative w-[72px] h-[72px] sm:w-[76px] sm:h-[76px] mb-2" onclick="handleAvatarClick('${member.id}')">
+              <img 
+                src="${member.avatar}" 
+                onerror="this.onerror=null;this.src='${member.fallback}';"
+                alt="${member.fullName}" 
+                class="avatar-circle w-full h-full rounded-full object-cover shadow-xs"
+              />
+              <!-- Bottom-Right Green Status Dot -->
+              <span 
+                title="Online now • ${member.role}"
+                class="absolute bottom-0.5 right-0.5 w-[15px] h-[15px] rounded-full bg-[#4C9E4A] border-[2.5px] border-[#FAF7F2]"
+              ></span>
+            </div>
+
+            <!-- First Name -->
+            <span 
+              onclick="handleAvatarClick('${member.id}')"
+              class="text-[15px] font-medium text-[#2A211B] leading-tight mb-1.5 tracking-[-0.01em]"
+            >
+              ${member.firstName}
+            </span>
+
+            <!-- Interactive [ 💬 DM ] Pill Button -->
+            <button 
+              type="button"
+              onclick="openDirectMessage('${member.id}')"
+              class="dm-pill ${isCurrentDm ? 'active-dm' : ''} inline-flex items-center gap-1 px-3 py-[3px] text-[12px] font-semibold text-[#2A211B] focus:outline-none"
+            >
+              <svg class="w-[12.5px] h-[12.5px] stroke-[#2A211B] transition-colors" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+              </svg>
+              <span>DM</span>
+            </button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Format text with line breaks matches reference wrapping
+    function formatMessageBody(text) {
+      const escaped = text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\n/g, '<br />');
+      return escaped;
+    }
+
+    // Render Staggered Chat Stream
+    function renderChatStream(scrollToBottom = false) {
+      let currentList = teamMessages;
+      if (activeChannel !== 'team') {
+        if (!dmThreads[activeChannel]) {
+          const targetMember = getMemberById(activeChannel);
+          dmThreads[activeChannel] = [
+            {
+              id: 'dm-init-' + activeChannel,
+              senderId: activeChannel,
+              timestamp: 'Today, Just now',
+              text: `Hi there! You're in a direct conversation with ${targetMember.fullName} (${targetMember.role}). Feel free to share notes or files directly.`,
+              indented: false,
+              pinned: false,
+              reactions: {}
+            }
+          ];
+        }
+        currentList = dmThreads[activeChannel];
+      }
+
+      chatStreamEl.innerHTML = currentList.map((msg, idx) => {
+        const sender = getMemberById(msg.senderId);
+        // Staggered alignment matching reference image (even index left, odd index indented right)
+        const isIndented = typeof msg.indented === 'boolean' ? msg.indented : (idx % 2 === 1);
+        const rowClass = isIndented ? 'msg-row-indented' : 'msg-row-left';
+
+        // Reaction pills HTML
+        const reactionEntries = Object.entries(msg.reactions || {});
+        const reactionsHtml = reactionEntries.length > 0 ? `
+          <div class="flex flex-wrap items-center gap-1.5 mt-2.5">
+            ${reactionEntries.map(([emoji, count]) => `
+              <button 
+                type="button"
+                onclick="toggleReaction('${msg.id}', '${emoji}')"
+                class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-[#EFEAE1] hover:bg-[#E4DDD2] border border-[#DFD7CC] text-[#2A211B] transition"
+              >
+                <span>${emoji}</span>
+                <span class="font-medium text-[11px] text-[#6E6259]">${count}</span>
+              </button>
+            `).join('')}
+          </div>
+        ` : '';
+
+        // Reply quote block if present
+        const replyHtml = msg.replyTo ? `
+          <div class="mb-2 pl-2.5 border-l-2 border-[#8C6D4F] text-xs text-[#6E6259] bg-[#EFEAE1]/60 py-1 pr-2 rounded-r">
+            <span class="font-semibold text-[#2A211B]">@${msg.replyTo.author}:</span> ${msg.replyTo.snippet}
+          </div>
+        ` : '';
+
+        // Attachment chip if present
+        const attachmentHtml = msg.attachment ? `
+          <div 
+            onclick="openSectionDrawer('files')"
+            class="mt-2.5 inline-flex items-center gap-2.5 px-3 py-2 rounded-xl bg-[#EFEAE1] hover:bg-[#E6DFD3] border border-[#D8D0C5] cursor-pointer transition"
+          >
+            <svg class="w-4 h-4 text-[#8C6D4F]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+            </svg>
+            <span class="text-xs font-semibold text-[#2A211B] underline decoration-[#8C6D4F]/50">${msg.attachment}</span>
+          </div>
+        ` : '';
+
+        return `
+          <div class="${rowClass} flex items-start gap-3.5 sm:gap-4 group animate-msg" id="${msg.id}">
+            <!-- Circular Avatar outside Left of Card -->
+            <img 
+              src="${sender.avatar}" 
+              onerror="this.onerror=null;this.src='${sender.fallback || 'https://placehold.co/150x150/DFD3C3/2A211B?text=U'}';"
+              alt="${sender.fullName}" 
+              class="w-[50px] h-[50px] sm:w-[54px] sm:h-[54px] rounded-full object-cover flex-shrink-0 border border-[#E2DAD0] mt-0.5 shadow-2xs"
+            />
+
+            <!-- Editorial Message Card -->
+            <div class="message-card flex-1 max-w-[530px] px-5 py-4 relative">
+              
+              <!-- Header: Name • Timestamp + Quick Hover Actions -->
+              <div class="flex items-center justify-between gap-2 mb-1.5">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="text-[15.5px] font-bold text-[#2A211B] tracking-[-0.01em]">
+                    ${sender.fullName}
+                  </span>
+                  <span class="text-[#8A7E74] text-xs">•</span>
+                  <span class="text-[13.5px] text-[#8A7E74] font-normal">
+                    ${msg.timestamp}
+                  </span>
+                  ${msg.pinned ? `
+                    <span title="Pinned message" class="inline-flex items-center gap-0.5 text-[11px] text-[#8C6D4F] bg-[#EFEAE1] px-1.5 py-0.2 rounded-full border border-[#DFD7CC]">
+                      📌 Pinned
+                    </span>
+                  ` : ''}
+                </div>
+
+                <!-- Subtle Quick Action Bar on Hover -->
+                <div class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 bg-[#FAF7F2] border border-[#DFD7CC] rounded-lg px-1.5 py-0.5 shadow-2xs">
+                  <button 
+                    type="button" 
+                    onclick="toggleReaction('${msg.id}', '🌿')" 
+                    title="React with 🌿"
+                    class="text-xs hover:scale-110 transition px-1"
+                  >🌿</button>
+                  <button 
+                    type="button" 
+                    onclick="toggleReaction('${msg.id}', '❤️')" 
+                    title="React with ❤️"
+                    class="text-xs hover:scale-110 transition px-1"
+                  >❤️</button>
+                  <button 
+                    type="button" 
+                    onclick="setReplyMessage('${msg.id}')" 
+                    title="Reply to message"
+                    class="text-xs text-[#6E6259] hover:text-[#2A211B] px-1"
+                  >↩</button>
+                  <button 
+                    type="button" 
+                    onclick="togglePinMessage('${msg.id}')" 
+                    title="${msg.pinned ? 'Unpin message' : 'Pin message'}"
+                    class="text-xs ${msg.pinned ? 'text-[#8C6D4F]' : 'text-[#6E6259]'} hover:text-[#2A211B] px-1"
+                  >📌</button>
+                </div>
+              </div>
+
+              ${replyHtml}
+
+              <!-- Message Body -->
+              <div class="text-[15.5px] leading-[1.52] text-[#2A211B] font-normal">
+                ${formatMessageBody(msg.text)}
+              </div>
+
+              ${attachmentHtml}
+              ${reactionsHtml}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      if (scrollToBottom) {
+        chatStreamEl.scrollTop = chatStreamEl.scrollHeight;
+      }
+      updateSectionBadges();
+    }
+
+    // Update badge counters on the 5 right-hand cards
+    function updateSectionBadges() {
+      const pinnedCount = teamMessages.filter(m => m.pinned).length;
+      document.getElementById('badge-notices').textContent = sectionData.notices.length;
+      document.getElementById('badge-files').textContent = sectionData.files.length;
+      document.getElementById('badge-reels').textContent = sectionData.reels.length;
+      document.getElementById('badge-pinned').textContent = pinnedCount;
+      document.getElementById('badge-events').textContent = sectionData.events.length;
+    }
+
+    // -------------------------------------------------------------------------
+    // 7. INTERACTIVE HANDLERS (DM, Reactions, Pins, Anonymous Mode, Composer)
+    // -------------------------------------------------------------------------
+    window.handleAvatarClick = function(memberId) {
+      senderSelect.value = memberId;
+      currentSenderId = memberId;
+      const member = getMemberById(memberId);
+      showToast(`Speaking as ${member.fullName}`);
+    };
+
+    window.openDirectMessage = function(memberId) {
+      if (activeChannel === memberId) {
+        activeChannel = 'team';
+        channelStatusPill.classList.add('hidden');
+        channelStatusPill.classList.remove('inline-flex');
+        showToast('Returned to All Team campaign thread');
+      } else {
+        activeChannel = memberId;
+        const member = getMemberById(memberId);
+        channelStatusText.textContent = `💬 DM with ${member.fullName}`;
+        channelStatusPill.classList.remove('hidden');
+        channelStatusPill.classList.add('inline-flex');
+        showToast(`Opened Direct Message with ${member.fullName}`);
+      }
+      renderMembersHeader();
+      renderChatStream(true);
+    };
+
+    exitDmBtn.addEventListener('click', () => {
+      activeChannel = 'team';
+      channelStatusPill.classList.add('hidden');
+      channelStatusPill.classList.remove('inline-flex');
+      renderMembersHeader();
+      renderChatStream(true);
+    });
+
+    // Toggle Anonymous Switch
+    function toggleAnonymousMode() {
+      isAnonymous = !isAnonymous;
+      anonToggleBtn.classList.toggle('active', isAnonymous);
+      anonToggleBtn.setAttribute('aria-checked', String(isAnonymous));
+      if (isAnonymous) {
+        anonLabelText.innerHTML = `Send anonymously <span class="ml-1 text-[11px] px-1.5 py-0.5 rounded bg-[#8C6D4F] text-white font-medium">ON</span>`;
+        messageInput.placeholder = "Write an anonymous message...";
+        showToast('Anonymous mode enabled — your identity is hidden');
+      } else {
+        anonLabelText.textContent = 'Send anonymously';
+        messageInput.placeholder = "Write a message...";
+        showToast('Anonymous mode disabled');
+      }
+    }
+
+    anonToggleBtn.addEventListener('click', toggleAnonymousMode);
+    anonLabelText.addEventListener('click', toggleAnonymousMode);
+
+    // Info Tooltip Toggle & Hover
+    anonInfoBtn.addEventListener('mouseenter', () => anonTooltip.classList.remove('hidden'));
+    anonInfoBtn.addEventListener('mouseleave', () => anonTooltip.classList.add('hidden'));
+    anonInfoBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      anonTooltip.classList.toggle('hidden');
+    });
+
+    // Sender Persona Change
+    senderSelect.addEventListener('change', (e) => {
+      currentSenderId = e.target.value;
+      const member = getMemberById(currentSenderId);
+      showToast(`Now posting as ${member.fullName}`);
+    });
+
+    // Reactions
+    window.toggleReaction = function(msgId, emoji) {
+      const list = activeChannel === 'team' ? teamMessages : dmThreads[activeChannel];
+      const msg = list.find(m => m.id === msgId);
+      if (!msg) return;
+      if (!msg.reactions) msg.reactions = {};
+      if (msg.reactions[emoji]) {
+        msg.reactions[emoji] += 1;
+      } else {
+        msg.reactions[emoji] = 1;
+      }
+      renderChatStream(false);
+    };
+
+    // Pin / Unpin Message
+    window.togglePinMessage = function(msgId) {
+      const list = activeChannel === 'team' ? teamMessages : dmThreads[activeChannel];
+      const msg = list.find(m => m.id === msgId);
+      if (!msg) return;
+      msg.pinned = !msg.pinned;
+      renderChatStream(false);
+      showToast(msg.pinned ? '📌 Message pinned to Important sections' : 'Message unpinned');
+      if (activeSectionDrawer === 'pinned') {
+        renderDrawerContent('pinned');
+      }
+    };
+
+    // Quote Reply
+    window.setReplyMessage = function(msgId) {
+      const list = activeChannel === 'team' ? teamMessages : dmThreads[activeChannel];
+      const msg = list.find(m => m.id === msgId);
+      if (!msg) return;
+      const sender = getMemberById(msg.senderId);
+      replyToMessage = {
+        id: msg.id,
+        author: sender.firstName,
+        snippet: msg.text.replace(/\n/g, ' ').slice(0, 55) + (msg.text.length > 55 ? '...' : '')
+      };
+      updateComposerContextBar();
+      messageInput.focus();
+    };
+
+    function updateComposerContextBar() {
+      if (replyToMessage) {
+        composerContextBar.classList.remove('hidden');
+        composerContextBar.classList.add('flex');
+        composerContextBadge.textContent = `Replying to ${replyToMessage.author}`;
+        composerContextDetail.textContent = replyToMessage.snippet;
+      } else if (pendingAttachment) {
+        composerContextBar.classList.remove('hidden');
+        composerContextBar.classList.add('flex');
+        composerContextBadge.textContent = 'Attached File';
+        composerContextDetail.textContent = pendingAttachment;
+      } else {
+        composerContextBar.classList.add('hidden');
+        composerContextBar.classList.remove('flex');
+      }
+    }
+
+    clearComposerContextBtn.addEventListener('click', () => {
+      replyToMessage = null;
+      pendingAttachment = null;
+      updateComposerContextBar();
+    });
+
+    // Get formatted current time
+    function getFormattedNow() {
+      const now = new Date();
+      return 'Today, ' + now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    }
+
+    // Submit New Chat Message
+    chatForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const rawText = messageInput.value.trim();
+      if (!rawText && !pendingAttachment) return;
+
+      const list = activeChannel === 'team' ? teamMessages : dmThreads[activeChannel];
+      const lastIndented = list.length > 0 ? list[list.length - 1].indented : true;
+
+      const newMsg = {
+        id: 'msg-' + Date.now(),
+        senderId: isAnonymous ? 'anon' : currentSenderId,
+        timestamp: getFormattedNow(),
+        text: rawText || `Shared a file: ${pendingAttachment}`,
+        indented: !lastIndented,
+        pinned: false,
+        reactions: {},
+        replyTo: replyToMessage,
+        attachment: pendingAttachment
+      };
+
+      list.push(newMsg);
+
+      // If user attached a new custom file, also add it to Files section
+      if (pendingAttachment && !sectionData.files.some(f => f.name === pendingAttachment)) {
+        const sender = getMemberById(newMsg.senderId);
+        sectionData.files.unshift({
+          id: 'f-' + Date.now(),
+          name: pendingAttachment,
+          meta: `1.8 MB • Shared by ${sender.fullName}`,
+          type: pendingAttachment.split('.').pop().toUpperCase() || 'FILE',
+          preview: `Shared directly in chat thread at ${newMsg.timestamp}.`
+        });
+      }
+
+      messageInput.value = '';
+      replyToMessage = null;
+      pendingAttachment = null;
+      updateComposerContextBar();
+      renderChatStream(true);
+    });
+
+    // Simulate Incoming Live Reply from a Teammate
+    simulateReplyBtn.addEventListener('click', () => {
+      const availableResponders = members.filter(m => m.id !== currentSenderId);
+      const randomMember = availableResponders[Math.floor(Math.random() * availableResponders.length)];
+
+      typingAvatar.src = randomMember.avatar;
+      typingText.textContent = randomMember.fullName;
+      typingIndicator.classList.remove('hidden');
+      typingIndicator.classList.add('flex');
+      chatStreamEl.scrollTop = chatStreamEl.scrollHeight;
+
+      setTimeout(() => {
+        typingIndicator.classList.add('hidden');
+        typingIndicator.classList.remove('flex');
+
+        const list = activeChannel === 'team' ? teamMessages : dmThreads[activeChannel];
+        const lastIndented = list.length > 0 ? list[list.length - 1].indented : true;
+
+        list.push({
+          id: 'msg-' + Date.now(),
+          senderId: randomMember.id,
+          timestamp: getFormattedNow(),
+          text: randomMember.sampleReply,
+          indented: !lastIndented,
+          pinned: false,
+          reactions: { '🌿': 1 }
+        });
+
+        renderChatStream(true);
+      }, 1300);
+    });
+
+    // -------------------------------------------------------------------------
+    // 8. EMOJI PICKER & FILE ATTACHMENT MODAL
+    // -------------------------------------------------------------------------
+    const curatedEmojis = ['🌿', '✨', '👏', '☕', '📌', '✅', '💡', '🔥', '🤍', '🎨', '📖', '🙌'];
+    emojiGrid.innerHTML = curatedEmojis.map(em => `
+      <button 
+        type="button" 
+        onclick="insertEmoji('${em}')"
+        class="p-1.5 hover:bg-[#EFEAE1] rounded-lg transition text-center"
+      >${em}</button>
+    `).join('');
+
+    window.insertEmoji = function(em) {
+      messageInput.value += em;
+      emojiPopover.classList.add('hidden');
+      messageInput.focus();
+    };
+
+    emojiBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      emojiPopover.classList.toggle('hidden');
+    });
+
+    document.addEventListener('click', () => {
+      emojiPopover.classList.add('hidden');
+    });
+
+    // Attachment Modal
+    function renderQuickAttachModal() {
+      quickAttachList.innerHTML = sectionData.files.map(f => `
+        <button 
+          type="button"
+          onclick="selectAttachment('${f.name}')"
+          class="w-full text-left p-3 rounded-xl bg-[#F5F1EA] hover:bg-[#EFEAE1] border border-[#DFD7CC] flex items-center justify-between transition"
+        >
+          <div class="flex items-center gap-3 truncate">
+            <span class="px-2 py-1 text-[10px] font-bold rounded bg-[#EFEAE1] border border-[#D8D0C5] text-[#8C6D4F]">${f.type}</span>
+            <div class="truncate">
+              <div class="text-xs font-semibold text-[#2A211B] truncate">${f.name}</div>
+              <div class="text-[11px] text-[#8A7E74]">${f.meta}</div>
+            </div>
+          </div>
+          <span class="text-xs font-medium text-[#8C6D4F] ml-2">Select</span>
+        </button>
+      `).join('');
+    }
+
+    window.selectAttachment = function(fileName) {
+      pendingAttachment = fileName;
+      updateComposerContextBar();
+      attachModal.classList.add('hidden');
+      messageInput.focus();
+      showToast(`Attached ${fileName}`);
+    };
+
+    attachBtn.addEventListener('click', () => {
+      renderQuickAttachModal();
+      attachModal.classList.remove('hidden');
+    });
+
+    closeAttachModalBtn.addEventListener('click', () => {
+      attachModal.classList.add('hidden');
+    });
+
+    confirmCustomFileBtn.addEventListener('click', () => {
+      const val = customFileNameInput.value.trim();
+      if (!val) return;
+      customFileNameInput.value = '';
+      window.selectAttachment(val);
+    });
+
+    // -------------------------------------------------------------------------
+    // 9. RIGHT SIDEBAR INTERACTIVE DRAWER (Notices, Files, Reels, Pinned, Events)
+    // -------------------------------------------------------------------------
+    const sectionMeta = {
+      notices: {
+        title: 'Notices',
+        subtitle: 'Updates & announcements',
+        icon: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m3 11 18-5v12L3 14v-3z"></path><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"></path></svg>`
+      },
+      files: {
+        title: 'Files',
+        subtitle: 'Shared documents & assets',
+        icon: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>`
+      },
+      reels: {
+        title: 'Reels',
+        subtitle: 'Short videos & highlights',
+        icon: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="4" ry="4"></rect><polygon points="10 9 15 12 10 15 10 9"></polygon></svg>`
+      },
+      pinned: {
+        title: 'Pinned',
+        subtitle: 'Key messages & resources',
+        icon: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 17v5"></path><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"></path></svg>`
+      },
+      events: {
+        title: 'Events',
+        subtitle: 'Meetings, deadlines & more',
+        icon: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="3" ry="3"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>`
+      }
+    };
+
+    window.openSectionDrawer = function(sectionKey) {
+      activeSectionDrawer = sectionKey;
+      const meta = sectionMeta[sectionKey];
+      drawerTitle.textContent = meta.title;
+      drawerSubtitle.textContent = meta.subtitle;
+      drawerIconContainer.innerHTML = meta.icon;
+
+      renderDrawerContent(sectionKey);
+
+      sectionDrawerBackdrop.classList.remove('hidden');
+      sectionDrawer.classList.remove('hidden');
+      sectionDrawer.classList.add('flex');
+    };
+
+    function closeSectionDrawer() {
+      activeSectionDrawer = null;
+      playingReelId = null;
+      sectionDrawerBackdrop.classList.add('hidden');
+      sectionDrawer.classList.add('hidden');
+      sectionDrawer.classList.remove('flex');
+    }
+
+    closeDrawerBtn.addEventListener('click', closeSectionDrawer);
+    sectionDrawerBackdrop.addEventListener('click', closeSectionDrawer);
+
+    document.querySelectorAll('[data-section]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        openSectionDrawer(btn.getAttribute('data-section'));
+      });
+    });
+
+    function renderDrawerContent(sectionKey) {
+      if (sectionKey === 'notices') {
+        drawerBody.innerHTML = sectionData.notices.map(n => `
+          <div class="p-4 rounded-2xl bg-[#F5F1EA] border border-[#DFD7CC] space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#EFEAE1] text-[#8C6D4F] border border-[#DFD7CC]">${n.tag}</span>
+              <span class="text-[11.5px] text-[#8A7E74]">${n.date}</span>
+            </div>
+            <h4 class="font-semibold text-[15px] text-[#2A211B] pt-1">${n.title}</h4>
+            <p class="text-xs text-[#5C5046] leading-relaxed">${n.body}</p>
+          </div>
+        `).join('');
+
+        drawerFooter.innerHTML = `
+          <div class="space-y-2">
+            <input id="newNoticeTitle" type="text" placeholder="Post a new team notice..." class="w-full bg-[#FAF7F2] border border-[#D8D0C5] rounded-xl px-3 py-2 text-xs text-[#2A211B] focus:outline-none focus:border-[#8C6D4F]" />
+            <button onclick="addNewNotice()" class="w-full bg-[#8C6D4F] hover:bg-[#765A3E] text-white text-xs font-medium py-2.5 rounded-xl transition">
+              Publish Notice
+            </button>
+          </div>
+        `;
+      } else if (sectionKey === 'files') {
+        drawerBody.innerHTML = sectionData.files.map(f => `
+          <div class="p-4 rounded-2xl bg-[#F5F1EA] border border-[#DFD7CC] space-y-2">
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-center gap-2.5">
+                <span class="px-2.5 py-1 rounded-lg bg-[#EFEAE1] border border-[#D8D0C5] text-[#8C6D4F] font-bold text-xs">${f.type}</span>
+                <div>
+                  <h4 class="text-sm font-semibold text-[#2A211B]">${f.name}</h4>
+                  <p class="text-[11.5px] text-[#8A7E74]">${f.meta}</p>
+                </div>
+              </div>
+              <button 
+                onclick="selectAttachment('${f.name}'); closeSectionDrawer();"
+                class="text-xs font-medium text-[#8C6D4F] hover:underline flex-shrink-0"
+              >Share in chat</button>
+            </div>
+            <p class="text-xs text-[#5C5046] bg-[#FAF7F2] p-2.5 rounded-xl border border-[#E6DEC8]">${f.preview}</p>
+          </div>
+        `).join('');
+
+        drawerFooter.innerHTML = `
+          <button onclick="closeSectionDrawer(); attachBtn.click();" class="w-full bg-[#8C6D4F] hover:bg-[#765A3E] text-white text-xs font-medium py-2.5 rounded-xl transition">
+            + Upload or Attach Document
+          </button>
+        `;
+      } else if (sectionKey === 'reels') {
+        drawerBody.innerHTML = sectionData.reels.map(r => {
+          const isPlaying = playingReelId === r.id;
+          return `
+            <div class="p-4 rounded-2xl bg-[#F5F1EA] border border-[#DFD7CC] space-y-3">
+              <!-- Warm Visual Video Player Preview -->
+              <div 
+                onclick="togglePlayReel('${r.id}')"
+                class="relative h-36 rounded-xl overflow-hidden cursor-pointer border border-[#D8D0C5] flex flex-col items-center justify-center p-4 text-center transition"
+                style="background: radial-gradient(circle at 30% 30%, #E7DBC8, #CBB59B);"
+              >
+                ${isPlaying ? `
+                  <div class="flex items-center gap-1.5 mb-2">
+                    <span class="w-1.5 h-6 bg-[#2A211B] rounded animate-pulse"></span>
+                    <span class="w-1.5 h-10 bg-[#8C6D4F] rounded animate-bounce"></span>
+                    <span class="w-1.5 h-5 bg-[#2A211B] rounded animate-pulse"></span>
+                    <span class="w-1.5 h-8 bg-[#8C6D4F] rounded animate-bounce"></span>
+                  </div>
+                  <span class="text-xs font-semibold text-[#2A211B] bg-[#FAF7F2]/90 px-3 py-1 rounded-full">▶ Playing Preview (${r.duration}) — Click to Pause</span>
+                ` : `
+                  <div class="w-11 h-11 rounded-full bg-[#FAF7F2]/90 text-[#2A211B] flex items-center justify-center shadow-md mb-1.5 hover:scale-105 transition">
+                    ▶
+                  </div>
+                  <span class="text-[11px] font-medium text-[#2A211B] bg-[#FAF7F2]/75 px-2.5 py-0.5 rounded-full">${r.duration} • ${r.views}</span>
+                `}
+              </div>
+              <div>
+                <h4 class="text-sm font-semibold text-[#2A211B]">${r.title}</h4>
+                <p class="text-[11.5px] text-[#8A7E74] mb-1">Created by ${r.author}</p>
+                <p class="text-xs text-[#5C5046]">${r.description}</p>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        drawerFooter.innerHTML = `
+          <button onclick="showToast('Studio screen recorder ready!')" class="w-full bg-[#8C6D4F] hover:bg-[#765A3E] text-white text-xs font-medium py-2.5 rounded-xl transition">
+            + Record Studio Highlight Reel
+          </button>
+        `;
+      } else if (sectionKey === 'pinned') {
+        const pinnedMsgs = teamMessages.filter(m => m.pinned);
+        if (pinnedMsgs.length === 0) {
+          drawerBody.innerHTML = `
+            <div class="text-center py-12 text-xs text-[#8A7E74]">
+              No pinned messages yet. Hover over any chat message and click 📌 to pin key decisions here.
+            </div>
+          `;
+        } else {
+          drawerBody.innerHTML = pinnedMsgs.map(m => {
+            const sender = getMemberById(m.senderId);
+            return `
+              <div class="p-4 rounded-2xl bg-[#F5F1EA] border border-[#DFD7CC] space-y-2">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <img src="${sender.avatar}" class="w-6 h-6 rounded-full object-cover" />
+                    <span class="text-xs font-bold text-[#2A211B]">${sender.fullName}</span>
+                    <span class="text-[11px] text-[#8A7E74]">• ${m.timestamp}</span>
+                  </div>
+                  <button onclick="togglePinMessage('${m.id}')" class="text-[11px] text-[#8C6D4F] hover:underline">Unpin</button>
+                </div>
+                <p class="text-xs text-[#2A211B] leading-relaxed">${formatMessageBody(m.text)}</p>
+              </div>
+            `;
+          }).join('');
+        }
+        drawerFooter.innerHTML = `
+          <button onclick="closeSectionDrawer()" class="w-full bg-[#EFEAE1] hover:bg-[#E2DAD0] text-[#2A211B] text-xs font-medium py-2.5 rounded-xl transition">
+            Back to Conversation
+          </button>
+        `;
+      } else if (sectionKey === 'events') {
+        drawerBody.innerHTML = sectionData.events.map(ev => `
+          <div class="p-4 rounded-2xl bg-[#F5F1EA] border border-[#DFD7CC] space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-semibold text-[#8C6D4F] bg-[#EFEAE1] px-2.5 py-0.5 rounded-full border border-[#DFD7CC]">${ev.time}</span>
+              <button 
+                onclick="toggleEventRsvp('${ev.id}')"
+                class="text-xs font-semibold px-2.5 py-1 rounded-lg border transition ${ev.rsvp === 'Going' ? 'bg-[#4C9E4A]/15 text-[#377B35] border-[#4C9E4A]/30' : 'bg-[#EFEAE1] text-[#2A211B] border-[#D8D0C5]'}"
+              >
+                ${ev.rsvp === 'Going' ? '✓ Going' : 'RSVP: Maybe'}
+              </button>
+            </div>
+            <h4 class="text-sm font-semibold text-[#2A211B] pt-0.5">${ev.title}</h4>
+            <p class="text-xs text-[#6E6259]">📍 ${ev.location} • Host: ${ev.host}</p>
+          </div>
+        `).join('');
+
+        drawerFooter.innerHTML = `
+          <button onclick="shareNextEventToChat()" class="w-full bg-[#8C6D4F] hover:bg-[#765A3E] text-white text-xs font-medium py-2.5 rounded-xl transition">
+            Share 3:00 PM Review Reminder to Chat
+          </button>
+        `;
+      }
+    }
+
+    window.addNewNotice = function() {
+      const input = document.getElementById('newNoticeTitle');
+      const val = input.value.trim();
+      if (!val) return;
+      const sender = getMemberById(currentSenderId);
+      sectionData.notices.unshift({
+        id: 'n-' + Date.now(),
+        title: val,
+        date: `Just now • by ${sender.fullName}`,
+        tag: 'Team Update',
+        body: `Posted directly from the workspace dashboard by ${sender.fullName}.`
+      });
+      updateSectionBadges();
+      renderDrawerContent('notices');
+      showToast('New notice published');
+    };
+
+    window.togglePlayReel = function(reelId) {
+      playingReelId = playingReelId === reelId ? null : reelId;
+      renderDrawerContent('reels');
+    };
+
+    window.toggleEventRsvp = function(evId) {
+      const ev = sectionData.events.find(e => e.id === evId);
+      if (!ev) return;
+      ev.rsvp = ev.rsvp === 'Going' ? 'Maybe' : 'Going';
+      renderDrawerContent('events');
+      showToast(`RSVP updated to "${ev.rsvp}" for ${ev.title}`);
+    };
+
+    window.shareNextEventToChat = function() {
+      const ev = sectionData.events[0];
+      closeSectionDrawer();
+      messageInput.value = `Reminder: "${ev.title}" is happening ${ev.time} in ${ev.location}. See you all there! 🌿`;
+      messageInput.focus();
+    };
+
+    // -------------------------------------------------------------------------
+    // 10. INITIALIZE DASHBOARD ON LOAD
+    // -------------------------------------------------------------------------
+    function initDashboard() {
+      renderMembersHeader();
+      renderChatStream(false);
+    }
+
+    initDashboard();
+  </script>
+</body>
+</html>
